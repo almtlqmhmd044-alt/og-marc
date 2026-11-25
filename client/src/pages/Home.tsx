@@ -67,6 +67,13 @@ const comparisons = [
   { name: "رأس فخار كلاسيكي", type: "لنكهة أعمق", rating: "4.6", detail: "توزيع حرارة • تحكم أكبر", badge: "للهواة" },
 ];
 
+const flavors = [
+  { id: "mint", name: "نعناع بارد", family: "منعشة", note: "بداية نظيفة ونهاية باردة", rating: 4.8, votes: 128, color: "mint" },
+  { id: "double-apple", name: "تفاحتين كلاسيك", family: "شرقية", note: "حلوة، عميقة، ومألوفة", rating: 4.6, votes: 96, color: "apple" },
+  { id: "grape", name: "عنب وتوت", family: "فواكه", note: "فاكهية ناعمة مع لمسة حامضة", rating: 4.7, votes: 84, color: "grape" },
+  { id: "lemon", name: "ليمون ونعناع", family: "منعشة", note: "خفيفة ومناسبة للجلسات الطويلة", rating: 4.5, votes: 72, color: "lemon" },
+];
+
 const faqs = [
   ["ما الفرق بين الأركيلة التقليدية والحديثة؟", "التقليدية تركّز على الخشب والمعدن وإحساس الجلسة الكلاسيكية، بينما الحديثة تستخدم الزجاج والفولاذ المقاوم للصدأ لسهولة التنظيف والتحكم."],
   ["كيف أختار نكهة شيشة مناسبة؟", "ابدأ بنكهة منفردة تعرفها، ثم جرّب خلطات من عائلتين متقاربتين مثل الفواكه والنعناع. لا تكثر المكونات في التجربة الأولى."],
@@ -112,6 +119,7 @@ export default function Home() {
   const [activeButton, setActiveButton] = useState<ButtonKey>("primary");
   const [openFaq, setOpenFaq] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userRatings, setUserRatings] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const saved = localStorage.getItem("nafas-button-config");
@@ -128,6 +136,17 @@ export default function Home() {
     localStorage.setItem("nafas-button-config", JSON.stringify(buttons));
   }, [buttons]);
 
+  useEffect(() => {
+    const saved = localStorage.getItem("nafas-flavor-ratings");
+    if (saved) {
+      try {
+        setUserRatings(JSON.parse(saved));
+      } catch {
+        localStorage.removeItem("nafas-flavor-ratings");
+      }
+    }
+  }, []);
+
   const currentButton = buttons[activeButton];
   const buttonLabel = useMemo(() => ({ primary: "الزر الرئيسي", secondary: "زر المقارنات", newsletter: "زر النشرة" }[activeButton]), [activeButton]);
 
@@ -137,6 +156,14 @@ export default function Home() {
 
   function resetButtons() {
     setButtons(defaultButtons);
+  }
+
+  function rateFlavor(flavorId: string, rating: number) {
+    setUserRatings((current) => {
+      const next = { ...current, [flavorId]: rating };
+      localStorage.setItem("nafas-flavor-ratings", JSON.stringify(next));
+      return next;
+    });
   }
 
   return (
@@ -150,6 +177,7 @@ export default function Home() {
         <nav className={`main-nav ${mobileOpen ? "is-open" : ""}`}>
           <a href="#guides" onClick={() => setMobileOpen(false)}>الأدلة</a>
           <a href="#comparisons" onClick={() => setMobileOpen(false)}>المقارنات</a>
+          <a href="#flavors" onClick={() => setMobileOpen(false)}>النكهات</a>
           <a href="#tips" onClick={() => setMobileOpen(false)}>نصائح سريعة</a>
           <a href="#faq" onClick={() => setMobileOpen(false)}>الأسئلة الشائعة</a>
         </nav>
@@ -207,6 +235,12 @@ export default function Home() {
             <div className="comparison-intro"><span className="section-kicker">دليل الشراء الهادئ</span><h2>قارن قبل أن<br /><em>تختار.</em></h2><p>لا نبحث عن الأكثر لمعانًا، بل عن الأنسب لروتينك وذوقك وميزانيتك.</p><AppButton config={buttons.secondary} /></div>
             <div className="comparison-list">{comparisons.map((item, index) => <div className="comparison-row" key={item.name}><div className="row-index">0{index + 1}</div><div className={`mini-art mini-art--${index}`}><div className="mini-base" /><div className="mini-stem" /><div className="mini-bowl" /></div><div className="comparison-main"><span className="comparison-badge">{item.badge}</span><h3>{item.name}</h3><p>{item.type} <span>·</span> {item.detail}</p></div><div className="rating"><Star size={15} fill="currentColor" /><strong>{item.rating}</strong><small>تقييم نَفَس</small></div><ArrowLeft className="row-arrow" size={18} /></div>)}</div>
           </div>
+        </section>
+
+        <section className="flavors-section container" id="flavors">
+          <div className="section-heading"><div><span className="section-kicker">دليل النكهات</span><h2>معسل يستحق التجربة</h2></div><span className="heading-aside">قيّم نكهتك المفضلة</span></div>
+          <div className="flavors-intro"><p>من البارد والمنعش إلى الشرقي العميق، اختر نكهة وشارك ذوقك مع بقية محبي الجلسات الهادئة.</p><div className="rating-legend"><Star size={15} fill="currentColor" /> التقييمات من مجتمع نَفَس</div></div>
+          <div className="flavors-grid">{flavors.map((flavor) => { const selectedRating = userRatings[flavor.id]; const displayRating = selectedRating ? Math.min(5, (flavor.rating + selectedRating / 20)).toFixed(1) : flavor.rating.toFixed(1); return <article className={`flavor-card flavor-card--${flavor.color}`} key={flavor.id}><div className="flavor-orb"><span>{flavor.name.slice(0, 1)}</span></div><div className="flavor-card-copy"><div className="flavor-meta"><span>{flavor.family}</span><span>{flavor.votes + (selectedRating ? 1 : 0)} تقييم</span></div><h3>{flavor.name}</h3><p>{flavor.note}</p><div className="flavor-rating"><div className="stars" aria-label={`تقييم ${displayRating} من 5`}>{[1, 2, 3, 4, 5].map((star) => <button className={star <= Math.round(Number(displayRating)) ? "is-filled" : ""} key={star} onClick={() => rateFlavor(flavor.id, star)} aria-label={`قيّم ${star} نجوم`}><Star size={16} fill="currentColor" /></button>)}</div><strong>{displayRating}</strong></div>{selectedRating ? <span className="rated-note"><Check size={13} /> قيّمت هذه النكهة بـ {selectedRating}/5</span> : <span className="rate-hint">اضغط على النجوم للتقييم</span>}</div></article> })}</div>
         </section>
 
         <section className="tips-section container" id="tips">
