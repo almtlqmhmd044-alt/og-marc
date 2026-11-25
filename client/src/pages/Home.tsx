@@ -122,6 +122,10 @@ export default function Home() {
   const [userRatings, setUserRatings] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    document.title = "نَفَس | دليل الأراكيل والشيشة والنكهات المميزة 2026";
+  }, []);
+
+  useEffect(() => {
     const saved = localStorage.getItem("nafas-button-config");
     if (saved) {
       try {
