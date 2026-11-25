@@ -8,6 +8,9 @@ import App from "./App";
 import { startLogin } from "./const";
 import "./index.css";
 
+const SEO_TITLE = "نَفَس | دليل الأراكيل والشيشة والنكهات المميزة 2026";
+document.title = SEO_TITLE;
+
 const queryClient = new QueryClient();
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
