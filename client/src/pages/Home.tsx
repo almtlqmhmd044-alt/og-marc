@@ -86,7 +86,7 @@ function AppButton({ config, variant = "filled", onClick }: { config: ButtonConf
     <a
       href={config.href}
       onClick={onClick}
-      className={`site-button ${variant === "outline" ? "site-button--outline" : ""}`}
+      className={`site-button site-button--pressable ${variant === "outline" ? "site-button--outline" : ""}`}
       style={variant === "filled" ? { backgroundColor: config.color, borderColor: config.color } : { color: config.color, borderColor: `${config.color}70` }}
     >
       {config.label}
