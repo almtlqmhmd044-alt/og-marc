@@ -8,7 +8,7 @@ import App from "./App";
 import { startLogin } from "./const";
 import "./index.css";
 
-const SEO_TITLE = "نَفَس | دليل الأراكيل والشيشة والنكهات المميزة 2026";
+const SEO_TITLE = "أفضل أنواع الدخان للبالغين | مقارنة واختيار واعٍ";
 document.title = SEO_TITLE;
 
 const queryClient = new QueryClient();

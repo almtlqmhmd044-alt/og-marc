@@ -1,265 +1,98 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  ArrowUpLeft,
-  BookOpen,
-  Check,
-  ChevronDown,
-  CircleHelp,
-  Clock3,
-  ExternalLink,
-  Flame,
-  Menu,
-  Moon,
-  Palette,
-  RotateCcw,
-  Search,
-  Settings2,
-  Sparkles,
-  Star,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, ExternalLink, Menu, Moon, Settings2, ShieldAlert, Sparkles, Star, Sun, X } from "lucide-react";
 
-type ButtonConfig = {
-  label: string;
-  href: string;
-  color: string;
+const SEO_TITLE = "أفضل أنواع الدخان للبالغين | مقارنة واختيار واعٍ";
+const buttonDefaults = {
+  primary: { label: "ابدأ المقارنة", href: "#compare", color: "#d7a66a" },
+  secondary: { label: "تعرّف على الأنواع", href: "#types", color: "#20324d" },
 };
 
-type ButtonKey = "primary" | "secondary" | "newsletter";
-
-const defaultButtons: Record<ButtonKey, ButtonConfig> = {
-  primary: { label: "ابدأ من هنا", href: "#guides", color: "#d18452" },
-  secondary: { label: "استكشف المقارنات", href: "#comparisons", color: "#e7b97d" },
-  newsletter: { label: "سجّل اهتمامك", href: "#newsletter", color: "#d18452" },
-};
-
-const articles = [
-  {
-    category: "دليل المبتدئين",
-    title: "كيف تختار أركيلة أولى بدون ما تتوه بين التفاصيل؟",
-    excerpt: "من حجم القاعدة إلى نوع العمود، هذه خريطة بسيطة تساعدك على بداية هادئة وذكية.",
-    time: "6 دقائق قراءة",
-    accent: "sand",
-    number: "01",
-  },
-  {
-    category: "نكهات وتجارب",
-    title: "خلطات شيشة متوازنة: 5 تركيبات تستحق التجربة",
-    excerpt: "وصفات ناعمة، منعشة، وثقيلة قليلًا مع ملاحظات تساعدك على ضبط النكهة.",
-    time: "4 دقائق قراءة",
-    accent: "copper",
-    number: "02",
-  },
-  {
-    category: "العناية والتنظيف",
-    title: "روتين 10 دقائق يحافظ على صفاء الجلسة",
-    excerpt: "خطوات قصيرة بعد كل استخدام لتنظيف الزجاجة والخرطوم والحجر من دون تعقيد.",
-    time: "5 دقائق قراءة",
-    accent: "olive",
-    number: "03",
-  },
-];
-
-const comparisons = [
-  { name: "أركيلة سفر خفيفة", type: "للجلسات السريعة", rating: "4.8", detail: "حجم صغير • تنظيف أسرع", badge: "الأكثر مرونة" },
-  { name: "أركيلة زجاجية أنيقة", type: "للبيت والضيوف", rating: "4.7", detail: "ثبات ممتاز • حضور بصري", badge: "اختيار المحررين" },
-  { name: "رأس فخار كلاسيكي", type: "لنكهة أعمق", rating: "4.6", detail: "توزيع حرارة • تحكم أكبر", badge: "للهواة" },
+const types = [
+  { icon: "01", title: "السجائر التقليدية", tag: "احتراق مباشر", text: "ملف نكهة مألوف وإيقاع سريع، لكن الدخان الناتج عن الاحتراق يغيّر تجربة الاستخدام ومخاطرها.", tone: "قوي", time: "قصيرة" },
+  { icon: "02", title: "التبغ المُسخّن", tag: "بدون احتراق مباشر", text: "يسخّن تبغًا حقيقيًا بدل حرقه. قد يختلف الإحساس والرائحة، لكنه ليس منتجًا آمنًا ولا وسيلة مثبتة للإقلاع.", tone: "متوسط", time: "قصيرة" },
+  { icon: "03", title: "معسل الشيشة", tag: "نكهة وجلسة", text: "اختيار اجتماعي بنكهة واضحة ووقت أطول. الماء لا يجعل الدخان آمنًا، والفحم يضيف ملوّثات خاصة.", tone: "متدرّج", time: "طويلة" },
+  { icon: "04", title: "السيجار والغليون", tag: "طقس بطيء", text: "تجربة تعتمد على الرائحة وطبقات النكهة والوقت. ليست أقل ضررًا لمجرد أن الدخان لا يُستنشق دائمًا.", tone: "عميق", time: "طويلة" },
 ];
 
 const flavors = [
-  { id: "mint", name: "نعناع بارد", family: "منعشة", note: "بداية نظيفة ونهاية باردة", rating: 4.8, votes: 128, color: "mint" },
-  { id: "double-apple", name: "تفاحتين كلاسيك", family: "شرقية", note: "حلوة، عميقة، ومألوفة", rating: 4.6, votes: 96, color: "apple" },
-  { id: "grape", name: "عنب وتوت", family: "فواكه", note: "فاكهية ناعمة مع لمسة حامضة", rating: 4.7, votes: 84, color: "grape" },
-  { id: "lemon", name: "ليمون ونعناع", family: "منعشة", note: "خفيفة ومناسبة للجلسات الطويلة", rating: 4.5, votes: 72, color: "lemon" },
+  { title: "تبغ مُحمّص", note: "جاف · خشبي · دافئ", color: "#a97145" },
+  { title: "نعناع بارد", note: "منعش · خفيف · واضح", color: "#659b83" },
+  { title: "فاكهة ناضجة", note: "حلو · عطري · اجتماعي", color: "#c76d58" },
+  { title: "توابل شرقية", note: "عميق · عطري · طويل", color: "#c89a52" },
 ];
-
-const faqs = [
-  ["ما الفرق بين الأركيلة التقليدية والحديثة؟", "التقليدية تركّز على الخشب والمعدن وإحساس الجلسة الكلاسيكية، بينما الحديثة تستخدم الزجاج والفولاذ المقاوم للصدأ لسهولة التنظيف والتحكم."],
-  ["كيف أختار نكهة شيشة مناسبة؟", "ابدأ بنكهة منفردة تعرفها، ثم جرّب خلطات من عائلتين متقاربتين مثل الفواكه والنعناع. لا تكثر المكونات في التجربة الأولى."],
-  ["كم مرة يجب تنظيف الأركيلة؟", "يفضّل شطف الأجزاء بعد كل جلسة وتنظيفًا أعمق مرة أسبوعيًا عند الاستخدام المتكرر، مع تجفيف القطع قبل التخزين."],
-  ["هل الحجم الأكبر يعني سحبة أفضل؟", "ليس بالضرورة. جودة الإغلاق وتدفق الهواء ونظافة الخرطوم أهم من الارتفاع وحده، لذلك اختر الحجم الذي يناسب استخدامك."],
-];
-
-function AppButton({ config, variant = "filled", onClick }: { config: ButtonConfig; variant?: "filled" | "outline"; onClick?: () => void }) {
-  return (
-    <a
-      href={config.href}
-      onClick={onClick}
-      className={`site-button site-button--pressable ${variant === "outline" ? "site-button--outline" : ""}`}
-      style={variant === "filled" ? { backgroundColor: config.color, borderColor: config.color } : { color: config.color, borderColor: `${config.color}70` }}
-    >
-      {config.label}
-      <ArrowUpLeft size={16} strokeWidth={2.2} />
-    </a>
-  );
-}
-
-function ArtTile({ accent, number }: { accent: string; number: string }) {
-  return (
-    <div className={`art-tile art-tile--${accent}`} aria-hidden="true">
-      <span className="art-number">{number}</span>
-      <div className="hookah-art">
-        <div className="hookah-smoke smoke-one" />
-        <div className="hookah-smoke smoke-two" />
-        <div className="hookah-bowl" />
-        <div className="hookah-stem" />
-        <div className="hookah-base" />
-        <div className="hookah-hose" />
-      </div>
-      <span className="art-orbit orbit-one" />
-      <span className="art-orbit orbit-two" />
-    </div>
-  );
-}
 
 export default function Home() {
-  const [buttons, setButtons] = useState<Record<ButtonKey, ButtonConfig>>(defaultButtons);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [dark, setDark] = useState(false);
   const [customizerOpen, setCustomizerOpen] = useState(false);
-  const [activeButton, setActiveButton] = useState<ButtonKey>("primary");
-  const [openFaq, setOpenFaq] = useState(0);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [userRatings, setUserRatings] = useState<Record<string, number>>({});
+  const [buttons, setButtons] = useState(buttonDefaults);
+  const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
-    document.title = "نَفَس | دليل الأراكيل والشيشة والنكهات المميزة 2026";
+    document.title = SEO_TITLE;
+    const storedButtons = localStorage.getItem("mizaj-buttons");
+    const storedRatings = localStorage.getItem("mizaj-ratings");
+    if (storedButtons) setButtons(JSON.parse(storedButtons));
+    if (storedRatings) setRatings(JSON.parse(storedRatings));
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem("nafas-button-config");
-    if (saved) {
-      try {
-        setButtons({ ...defaultButtons, ...JSON.parse(saved) });
-      } catch {
-        localStorage.removeItem("nafas-button-config");
-      }
-    }
-  }, []);
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+  }, [dark]);
 
-  useEffect(() => {
-    localStorage.setItem("nafas-button-config", JSON.stringify(buttons));
-  }, [buttons]);
+  const averageRating = useMemo(() => {
+    const values = Object.values(ratings);
+    return values.length ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : "—";
+  }, [ratings]);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("nafas-flavor-ratings");
-    if (saved) {
-      try {
-        setUserRatings(JSON.parse(saved));
-      } catch {
-        localStorage.removeItem("nafas-flavor-ratings");
-      }
-    }
-  }, []);
+  const saveButtons = (next: typeof buttons) => {
+    setButtons(next);
+    localStorage.setItem("mizaj-buttons", JSON.stringify(next));
+  };
 
-  const currentButton = buttons[activeButton];
-  const buttonLabel = useMemo(() => ({ primary: "الزر الرئيسي", secondary: "زر المقارنات", newsletter: "زر النشرة" }[activeButton]), [activeButton]);
-
-  function updateCurrent(field: keyof ButtonConfig, value: string) {
-    setButtons((current) => ({ ...current, [activeButton]: { ...current[activeButton], [field]: value } }));
-  }
-
-  function resetButtons() {
-    setButtons(defaultButtons);
-  }
-
-  function rateFlavor(flavorId: string, rating: number) {
-    setUserRatings((current) => {
-      const next = { ...current, [flavorId]: rating };
-      localStorage.setItem("nafas-flavor-ratings", JSON.stringify(next));
-      return next;
-    });
-  }
+  const rate = (name: string, value: number) => {
+    const next = { ...ratings, [name]: value };
+    setRatings(next);
+    localStorage.setItem("mizaj-ratings", JSON.stringify(next));
+  };
 
   return (
-    <div className="site-shell" dir="rtl">
-      <div className="topline"><span>محتوى هادئ، اختيارات أذكى</span><span>آخر تحديث: نوفمبر 2026</span></div>
+    <div className="site-shell">
+      <div className="adult-strip"><ShieldAlert size={15} /> هذا الدليل للبالغين فقط. لا يوجد منتج تبغ آمن، والمقارنة هنا وصفية وليست توصية صحية.</div>
       <header className="site-header">
-        <a href="#top" className="brand" aria-label="نَفَس، الصفحة الرئيسية">
-          <span className="brand-mark"><Moon size={18} fill="currentColor" /></span>
-          <span><strong>نَفَس</strong><small>دليل الأراكيل والشيشة</small></span>
-        </a>
-        <nav className={`main-nav ${mobileOpen ? "is-open" : ""}`}>
-          <a href="#guides" onClick={() => setMobileOpen(false)}>الأدلة</a>
-          <a href="#comparisons" onClick={() => setMobileOpen(false)}>المقارنات</a>
-          <a href="#flavors" onClick={() => setMobileOpen(false)}>النكهات</a>
-          <a href="#tips" onClick={() => setMobileOpen(false)}>نصائح سريعة</a>
-          <a href="#faq" onClick={() => setMobileOpen(false)}>الأسئلة الشائعة</a>
+        <a className="brand" href="#top" aria-label="مَزاج الصفحة الرئيسية"><span className="brand-mark">م</span><span><b>مَزاج</b><small>دليل الدخان والتبغ</small></span></a>
+        <nav className={menuOpen ? "main-nav open" : "main-nav"}>
+          <a href="#types" onClick={() => setMenuOpen(false)}>الأنواع</a>
+          <a href="#compare" onClick={() => setMenuOpen(false)}>المقارنة</a>
+          <a href="#flavors" onClick={() => setMenuOpen(false)}>النكهات</a>
+          <a href="#safety" onClick={() => setMenuOpen(false)}>سلامتك أولًا</a>
         </nav>
-        <div className="header-actions">
-          <button className="icon-button" aria-label="بحث"><Search size={18} /></button>
-          <button className="customize-trigger" onClick={() => setCustomizerOpen(true)}><Settings2 size={15} /> تخصيص الأزرار</button>
-          <button className="mobile-toggle" onClick={() => setMobileOpen((open) => !open)} aria-label="فتح القائمة">{mobileOpen ? <X size={21} /> : <Menu size={21} />}</button>
-        </div>
+        <div className="header-actions"><button className="icon-button" onClick={() => setDark(!dark)} aria-label="تبديل الوضع">{dark ? <Sun size={18} /> : <Moon size={18} />}</button><button className="customize-trigger" onClick={() => setCustomizerOpen(true)}><Settings2 size={16} /> تخصيص الأزرار</button><button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="القائمة">{menuOpen ? <X /> : <Menu />}</button></div>
       </header>
 
       <main id="top">
-        <section className="hero-section container">
-          <div className="hero-copy">
-            <div className="eyebrow"><span className="eyebrow-dot" /> مساحة للذوق الهادئ</div>
-            <h1>خذ نفسًا…<br /><em>واختَر على مهل.</em></h1>
-            <p className="hero-lead">دليلك العربي للأراكيل والشيشة. مراجعات بسيطة، مقارنات صادقة، وتفاصيل صغيرة تصنع جلسة أجمل.</p>
-            <div className="hero-actions">
-              <AppButton config={buttons.primary} />
-              <AppButton config={buttons.secondary} variant="outline" />
-            </div>
-            <div className="hero-note"><Check size={15} /> محتوى مستقل بلا مبالغة في الوعود</div>
-          </div>
-          <div className="hero-visual">
-            <div className="visual-label label-top">01 / بداية ناعمة</div>
-            <div className="hero-art">
-              <div className="hero-glow" />
-              <div className="hero-smoke smoke-a" /><div className="hero-smoke smoke-b" /><div className="hero-smoke smoke-c" />
-              <div className="hero-hookah">
-                <div className="hero-bowl"><span /></div>
-                <div className="hero-neck" />
-                <div className="hero-base"><i /><b /></div>
-                <div className="hero-hose" />
-              </div>
-              <div className="hero-stamp"><span>مختارات</span><strong>نَفَس</strong><small>منذ ٢٠٢٦</small></div>
-            </div>
-            <div className="visual-label label-bottom"><span>دفء</span><span>ذوق</span><span>تجربة</span></div>
-          </div>
+        <section className="hero-section">
+          <div className="hero-copy"><div className="eyebrow"><Sparkles size={15} /> اختيارات محرّرة · 2026</div><h1>اختَر الدخان<br /><em>على ذوقك،</em><br />لا على الضجيج.</h1><p className="hero-lead">دليل عربي هادئ لفهم الفرق بين الأنواع، النكهات، وطقوس الاستخدام — مع مقارنة صريحة لا تخلط بين «الأفضل للتجربة» و«الأفضل للصحة».</p><div className="hero-actions"><a className="site-button primary" style={{ backgroundColor: buttons.primary.color }} href={buttons.primary.href}>{buttons.primary.label}<ArrowLeft size={17} /></a><a className="site-button secondary" style={{ backgroundColor: buttons.secondary.color }} href={buttons.secondary.href}>{buttons.secondary.label}</a></div><div className="hero-proof"><span><b>4</b><small>فئات رئيسية</small></span><span><b>12</b><small>محور مقارنة</small></span><span><b>{averageRating}</b><small>متوسط القرّاء</small></span></div></div>
+          <div className="hero-visual"><div className="glow-orb" /><div className="tobacco-pouch"><span className="pouch-seal">MZ</span><b>مَزاج</b><small>اختيارك يبدأ بالفهم</small><i>دليل التبغ</i></div><div className="smoke-line smoke-one" /><div className="smoke-line smoke-two" /><div className="visual-caption"><span>01</span><p>النكهة<br /><b>ليست معيار الأمان</b></p></div></div>
         </section>
 
-        <section className="signal-strip">
-          <div className="container signal-grid">
-            <div><strong>12</strong><span>دليلًا عمليًا</span></div><div><strong>08</strong><span>مقارنات مختصرة</span></div><div><strong>24</strong><span>نصيحة مجرّبة</span></div><div className="signal-quote">«الجلسة الحلوة تبدأ باختيار يعرف سببه»</div>
-          </div>
-        </section>
+        <section className="notice-card"><ShieldAlert size={24} /><div><b>ملاحظة قبل الاختيار</b><p>وفق منظمة الصحة العالمية، كل أشكال استخدام التبغ ضارة ولا يوجد مستوى تعرّض آمن. إن كنت لا تستخدم التبغ، فلا تبدأ. وإن كنت تفكر في الإقلاع، فاستشر خدمة صحية موثوقة.</p></div><a href="#safety">اقرأ التنبيه الكامل <ArrowLeft size={16} /></a></section>
 
-        <section className="content-section container" id="guides">
-          <div className="section-heading"><div><span className="section-kicker">مختارات المحررين</span><h2>أدلة تبدأ معك من الصفر</h2></div><a className="text-link" href="#guides">كل الأدلة <ArrowLeft size={17} /></a></div>
-          <div className="article-grid">
-            {articles.map((article) => <article className="article-card" key={article.number}><ArtTile accent={article.accent} number={article.number} /><div className="article-body"><div className="card-meta"><span>{article.category}</span><span><Clock3 size={14} />{article.time}</span></div><h3>{article.title}</h3><p>{article.excerpt}</p><a href="#faq" className="read-link">اقرأ الدليل <ArrowUpLeft size={16} /></a></div></article>)}
-          </div>
-        </section>
+        <section className="section-block" id="types"><div className="section-heading"><div><span className="kicker">01 / افهم المشهد</span><h2>أربعة عوالم،<br /><em>أربع تجارب مختلفة.</em></h2></div><p>لا نضع ترتيبًا مطلقًا للمنتجات؛ نرسم خريطة تساعدك على فهم الملف الحسي، الوقت، وطريقة الاستخدام قبل أي قرار.</p></div><div className="type-grid">{types.map((item) => <article className="type-card" key={item.title}><div className="type-top"><span className="number-badge">{item.icon}</span><span className="type-tag">{item.tag}</span></div><h3>{item.title}</h3><p>{item.text}</p><div className="type-meta"><span><small>الطابع</small><b>{item.tone}</b></span><span><small>الإيقاع</small><b>{item.time}</b></span></div><a href="#compare">تفاصيل المقارنة <ArrowLeft size={15} /></a></article>)}</div></section>
 
-        <section className="comparison-section" id="comparisons">
-          <div className="container comparison-layout">
-            <div className="comparison-intro"><span className="section-kicker">دليل الشراء الهادئ</span><h2>قارن قبل أن<br /><em>تختار.</em></h2><p>لا نبحث عن الأكثر لمعانًا، بل عن الأنسب لروتينك وذوقك وميزانيتك.</p><AppButton config={buttons.secondary} /></div>
-            <div className="comparison-list">{comparisons.map((item, index) => <div className="comparison-row" key={item.name}><div className="row-index">0{index + 1}</div><div className={`mini-art mini-art--${index}`}><div className="mini-base" /><div className="mini-stem" /><div className="mini-bowl" /></div><div className="comparison-main"><span className="comparison-badge">{item.badge}</span><h3>{item.name}</h3><p>{item.type} <span>·</span> {item.detail}</p></div><div className="rating"><Star size={15} fill="currentColor" /><strong>{item.rating}</strong><small>تقييم نَفَس</small></div><ArrowLeft className="row-arrow" size={18} /></div>)}</div>
-          </div>
-        </section>
+        <section className="comparison-section" id="compare"><div className="section-heading compact"><div><span className="kicker">02 / قارن بذكاء</span><h2>مصفوفة الاختيار<br /><em>من دون ادعاءات.</em></h2></div><span className="editorial-stamp">اختيار تحريري<br /><b>لا تصنيف صحي</b></span></div><div className="comparison-table"><div className="comparison-head"><span>الفئة</span><span>النكهة</span><span>الوقت</span><span>الرماد / الدخان</span></div>{types.map((item, i) => <div className="comparison-row" key={item.title}><div><b>0{i + 1}</b><strong>{item.title}</strong></div><span>{i === 0 ? "مباشرة" : i === 1 ? "أنظف رائحة" : i === 2 ? "واسعة" : "طبقية"}</span><span>{item.time}</span><span className={i === 1 ? "muted-value" : ""}>{i === 1 ? "أقل رمادًا" : i === 2 ? "كثيف" : "مرتفع"}</span></div>)}</div></section>
 
-        <section className="flavors-section container" id="flavors">
-          <div className="section-heading"><div><span className="section-kicker">دليل النكهات</span><h2>معسل يستحق التجربة</h2></div><span className="heading-aside">قيّم نكهتك المفضلة</span></div>
-          <div className="flavors-intro"><p>من البارد والمنعش إلى الشرقي العميق، اختر نكهة وشارك ذوقك مع بقية محبي الجلسات الهادئة.</p><div className="rating-legend"><Star size={15} fill="currentColor" /> التقييمات من مجتمع نَفَس</div></div>
-          <div className="flavors-grid">{flavors.map((flavor) => { const selectedRating = userRatings[flavor.id]; const displayRating = selectedRating ? Math.min(5, (flavor.rating + selectedRating / 20)).toFixed(1) : flavor.rating.toFixed(1); return <article className={`flavor-card flavor-card--${flavor.color}`} key={flavor.id}><div className="flavor-orb"><span>{flavor.name.slice(0, 1)}</span></div><div className="flavor-card-copy"><div className="flavor-meta"><span>{flavor.family}</span><span>{flavor.votes + (selectedRating ? 1 : 0)} تقييم</span></div><h3>{flavor.name}</h3><p>{flavor.note}</p><div className="flavor-rating"><div className="stars" aria-label={`تقييم ${displayRating} من 5`}>{[1, 2, 3, 4, 5].map((star) => <button className={star <= Math.round(Number(displayRating)) ? "is-filled" : ""} key={star} onClick={() => rateFlavor(flavor.id, star)} aria-label={`قيّم ${star} نجوم`}><Star size={16} fill="currentColor" /></button>)}</div><strong>{displayRating}</strong></div>{selectedRating ? <span className="rated-note"><Check size={13} /> قيّمت هذه النكهة بـ {selectedRating}/5</span> : <span className="rate-hint">اضغط على النجوم للتقييم</span>}</div></article> })}</div>
-        </section>
+        <section className="section-block flavor-section" id="flavors"><div className="section-heading"><div><span className="kicker">03 / مزاجك أولًا</span><h2>نكهات يصفها<br /><em>الذوق لا الدعاية.</em></h2></div><p>قيّم النكهات لتظهر لنا خريطة تفضيلات المجتمع. التقييم شخصي ولا يعني أن المنتج أقل ضررًا.</p></div><div className="flavor-grid">{flavors.map((flavor) => <article className="flavor-card" key={flavor.title}><div className="flavor-swatch" style={{ background: flavor.color }}><span>{flavor.title.slice(0, 1)}</span></div><div className="flavor-info"><h3>{flavor.title}</h3><p>{flavor.note}</p><div className="rating" aria-label={`تقييم ${flavor.title}`}>{[1, 2, 3, 4, 5].map((n) => <button key={n} className={n <= (ratings[flavor.title] || 0) ? "active" : ""} onClick={() => rate(flavor.title, n)}><Star size={15} fill="currentColor" /></button>)}</div></div></article>)}</div></section>
 
-        <section className="tips-section container" id="tips">
-          <div className="section-heading"><div><span className="section-kicker">خذها معك</span><h2>ثلاثة أشياء تغيّر الجلسة</h2></div><span className="heading-aside">نصيحة قصيرة، فرق كبير</span></div>
-          <div className="tips-grid"><div className="tip-card tip-card--dark"><Flame size={22} /><span>01</span><h3>لا تملأ الرأس زيادة</h3><p>اترك مسافة صغيرة بين المعسل والقصدير حتى تتنفس النكهة ولا تحترق بسرعة.</p></div><div className="tip-card"><Sparkles size={22} /><span>02</span><h3>الماء ليس للزينة</h3><p>ارتفاع الماء المناسب يخفف السحبة ويحافظ على انسيابية التجربة، لا تغمر الأنبوب كاملًا.</p></div><div className="tip-card"><BookOpen size={22} /><span>03</span><h3>النظافة تصنع الفرق</h3><p>الرائحة القديمة تختفي عندما تشطف القاعدة والخرطوم مباشرة بعد نهاية كل جلسة.</p></div></div>
-        </section>
+        <section className="safety-section" id="safety"><div className="safety-copy"><span className="kicker">04 / بلا مواربة</span><h2>التجربة قد تكون شخصية،<br /><em>لكن الضرر ليس تفصيلًا.</em></h2><p>التبغ يحتوي على النيكوتين المسبب للاعتماد. التبغ المسخن ليس آمنًا، والشيشة ليست بديلًا آمنًا للسجائر، كما أن «العشبي» أو المنكّه لا يعني تلقائيًا خلو الدخان من المواد الضارة.</p><a className="text-link" href="https://www.who.int/news-room/fact-sheets/detail/tobacco" target="_blank" rel="noreferrer">المصدر: منظمة الصحة العالمية <ExternalLink size={14} /></a></div><div className="safety-points"><div><b>01</b><span>لا تبدأ إذا لم تكن مستخدمًا للتبغ.</span></div><div><b>02</b><span>أبعد الدخان عن الأطفال والحوامل وغير المستخدمين.</span></div><div><b>03</b><span>اطلب مساعدة مختص إذا رغبت في الإقلاع.</span></div></div></section>
 
-        <section className="faq-section container" id="faq"><div className="faq-intro"><span className="section-kicker">أسئلة على السريع</span><h2>ما يدور في بالك،<br /><em>له جواب.</em></h2><p>معلومات واضحة تساعدك تستمتع بتجربتك بوعي واعتدال.</p></div><div className="faq-list">{faqs.map(([question, answer], index) => <div className={`faq-item ${openFaq === index ? "is-open" : ""}`} key={question}><button onClick={() => setOpenFaq(openFaq === index ? -1 : index)}><span>{question}</span><ChevronDown size={18} /></button>{openFaq === index && <p>{answer}</p>}</div>)}</div></section>
-
-        <section className="newsletter-section container" id="newsletter"><div><span className="section-kicker">رسالة خفيفة</span><h2>دليل جديد، عندما<br /><em>يستحق وقتك.</em></h2></div><div className="newsletter-form"><p>اشترك لتصلك اختياراتنا ومراجعاتنا الجديدة بدون ضجيج.</p><div className="newsletter-input"><input placeholder="بريدك الإلكتروني" aria-label="بريدك الإلكتروني" /><AppButton config={buttons.newsletter} /></div><small>لن نرسل إلا ما نحب أن نقرأه نحن أيضًا.</small></div></section>
+        <section className="faq-section"><div className="section-heading compact"><div><span className="kicker">أسئلة شائعة</span><h2>قبل أن تكمل<br /><em>اختيارك.</em></h2></div></div><div className="faq-list">{[{ q: "هل يوجد نوع دخان أكثر أمانًا؟", a: "لا. الجهات الصحية تؤكد أن جميع أشكال استخدام التبغ ضارة، ولا ينبغي تحويل مقارنة النكهة أو الرائحة إلى ادعاء صحي." }, { q: "هل التبغ المسخن هو نفسه السيجارة الإلكترونية؟", a: "لا. التبغ المسخن يسخّن تبغًا حقيقيًا، بينما السيجارة الإلكترونية تسخّن سائلًا. كلاهما ليس خاليًا من المخاطر." }, { q: "هل الماء يفلتر دخان الشيشة؟", a: "لا. الماء لا يزيل المواد الضارة من الدخان، وقد يضيف الفحم تعرضًا لأول أكسيد الكربون ومواد أخرى." }].map((faq, i) => <div className={openFaq === i ? "faq-item open" : "faq-item"} key={faq.q}><button onClick={() => setOpenFaq(openFaq === i ? null : i)}><span>{faq.q}</span><ChevronDown size={18} /></button>{openFaq === i && <p>{faq.a}</p>}</div>)}</div></section>
       </main>
 
-      <footer className="site-footer"><div className="container footer-inner"><div className="brand footer-brand"><span className="brand-mark"><Moon size={18} fill="currentColor" /></span><span><strong>نَفَس</strong><small>دليل الأراكيل والشيشة</small></span></div><p>محتوى مستقل لجلسات أهدأ واختيارات أذكى.</p><span>© 2026 نَفَس</span></div></footer>
+      <footer className="site-footer"><div><a className="brand" href="#top"><span className="brand-mark">م</span><span><b>مَزاج</b><small>دليل الدخان والتبغ</small></span></a><p>محتوى تحريري للبالغين، لا يقدّم توصيات صحية ولا يدّعي أن منتجًا آمن.</p></div><div className="footer-links"><a href="https://www.who.int/news-room/fact-sheets/detail/tobacco" target="_blank" rel="noreferrer">WHO Tobacco <ExternalLink size={13} /></a><a href="https://www.cdc.gov/tobacco/other-tobacco-products/hookahs.html" target="_blank" rel="noreferrer">CDC Hookahs <ExternalLink size={13} /></a></div><span>© 2026 مَزاج</span></footer>
 
-      {customizerOpen && <div className="modal-backdrop" onClick={() => setCustomizerOpen(false)}><aside className="customizer-panel" onClick={(event) => event.stopPropagation()}><div className="customizer-head"><div><span className="section-kicker">لوحة التحكم</span><h2>خصّص أزرارك</h2></div><button className="close-button" onClick={() => setCustomizerOpen(false)} aria-label="إغلاق"><X size={20} /></button></div><p className="panel-description">غيّر النص واللون والرابط، وستظهر النتيجة مباشرة في الصفحة. نحفظ اختياراتك على هذا الجهاز.</p><div className="button-switcher">{(Object.keys(buttons) as ButtonKey[]).map((key) => <button className={activeButton === key ? "is-active" : ""} key={key} onClick={() => setActiveButton(key)}>{key === "primary" ? "الرئيسي" : key === "secondary" ? "المقارنات" : "النشرة"}</button>)}</div><div className="field"><label htmlFor="button-label">نص {buttonLabel}</label><input id="button-label" value={currentButton.label} onChange={(event) => updateCurrent("label", event.target.value)} /></div><div className="field"><label htmlFor="button-href">الرابط</label><input id="button-href" value={currentButton.href} onChange={(event) => updateCurrent("href", event.target.value)} placeholder="#section أو رابط خارجي" /></div><div className="field"><label htmlFor="button-color">لون الزر</label><div className="color-row"><input id="button-color" type="color" value={currentButton.color} onChange={(event) => updateCurrent("color", event.target.value)} /><input value={currentButton.color} onChange={(event) => updateCurrent("color", event.target.value)} aria-label="قيمة لون الزر" /></div></div><div className="live-preview"><span>معاينة فورية</span><AppButton config={currentButton} /></div><div className="panel-actions"><button className="reset-button" onClick={resetButtons}><RotateCcw size={16} /> استعادة الافتراضي</button><button className="done-button" onClick={() => setCustomizerOpen(false)}><Check size={16} /> تم</button></div><div className="customizer-foot"><Palette size={15} /> يمكنك تعديل كل زر بشكل مستقل</div></aside></div>}
+      {customizerOpen && <div className="modal-backdrop" onClick={() => setCustomizerOpen(false)}><aside className="customizer-panel" onClick={(e) => e.stopPropagation()}><div className="panel-head"><div><span className="kicker">لوحة التحكم</span><h2>خصّص أزرارك</h2></div><button className="icon-button" onClick={() => setCustomizerOpen(false)}><X size={18} /></button></div><p>غيّر النص والرابط واللون، ثم شاهد النتيجة مباشرة.</p>{(["primary", "secondary"] as const).map((key) => <div className="control-group" key={key}><label>{key === "primary" ? "الزر الرئيسي" : "الزر الثانوي"}</label><input value={buttons[key].label} onChange={(e) => saveButtons({ ...buttons, [key]: { ...buttons[key], label: e.target.value } })} /><input value={buttons[key].href} onChange={(e) => saveButtons({ ...buttons, [key]: { ...buttons[key], href: e.target.value } })} /><div className="color-control"><input type="color" value={buttons[key].color} onChange={(e) => saveButtons({ ...buttons, [key]: { ...buttons[key], color: e.target.value } })} /><span>{buttons[key].color}</span></div></div>)}<div className="live-preview"><span>معاينة</span><a className="site-button primary" style={{ backgroundColor: buttons.primary.color }} href="#">{buttons.primary.label}<Check size={16} /></a></div></aside></div>}
     </div>
   );
 }
